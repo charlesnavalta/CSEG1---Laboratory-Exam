@@ -73,9 +73,9 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 10px; /* Height of the separator */
-            background: rgba(0, 0, 0, 0.4);
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+            height: 15px; /* Increased height of the separator for better grounding */
+            background: rgba(0, 0, 0, 0.5); /* Stronger ground shadow */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
             z-index: 1; /* Ensure it is above the background but below the portrait */
         }
 
@@ -84,7 +84,7 @@
             position:absolute;
             
             /* FIX 1: Raise Sprite to Prevent Feet Cutoff */
-            bottom: 5%; /* Pushes the character slightly above the dialogue boundary */
+            bottom: -10px; /* Push the sprite slightly down so the feet appear to sit just above the dialogue border */
             
             /* Position and Sizing */
             left:50%;
@@ -98,7 +98,7 @@
             
             /* FIX 2: Add Separation (Shadow) */
             filter:drop-shadow(0 0 12px rgba(255, 255, 255, 0.4)) drop-shadow(0 8px 18px rgba(0,0,0,0.8));
-            clip-path: inset(0 0 0 0); /* REMOVING CROP - Relying on transparent sprites now */
+            clip-path: inset(0 0 0 0); 
         }
 
         /* --- Dialogue Box --- */
@@ -120,11 +120,13 @@
             border-radius:6px;
             font-size:1.1rem;
         }
+        /* FIX: Set a minimum height to prevent layout shift */
         #text-content{
             flex:1;
             overflow:auto;
             font-size:1rem;
             line-height:1.5;
+            min-height: 90px; /* Ensures space for 4-5 lines of dialogue */
         }
         .translated-text{
             display:block;
@@ -246,6 +248,7 @@
                 max-height: 70%; /* Adjust portrait size for smaller screen space */
                 max-width: 50%; /* Widen a bit for mobile */
                 clip-path: inset(0 0 0 0);
+                bottom: -5px; /* Adjust bottom position for mobile */
             }
         }
     </style>
@@ -259,7 +262,7 @@
             
             <!-- Character Portrait (Dynamically updated) -->
             <!-- Positioning changed to center the image horizontally -->
-            <img id="char-portrait" src="https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/sprite/isaganisprite.png" alt="Character Portrait" style="position:absolute;left:50%;transform:translateX(-50%) scale(1.05);bottom:5%;display:block;max-height:90%;max-width:35%;">
+            <img id="char-portrait" src="https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/sprite/isaganisprite.png" alt="Character Portrait" style="position:absolute;left:50%;transform:translateX(-50%) scale(1.05);bottom:-10px;display:block;max-height:90%;max-width:35%;">
             
         </div>
 
@@ -325,6 +328,7 @@
             CHURCH: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/church.png', 
             REVOLUTION: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/revolution.png', 
             WRITER: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/writer.png', 
+            CONFRONTATION: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/confrontation.png',
             
             // Placeholders
             OLD_HOUSE: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/writer.png', 
@@ -359,7 +363,7 @@
             'TIME_PASSES_A': { image: IMAGE_URLS.STUDYROOM, speaker: "Narrator", text_filipino: "Lumipas ang pitong taon. Naging isang matalinong estudyante ka, na nakatuon sa pag-aaral ng mga batas.", text_english: "Seven years pass. You become a disciplined student, focused on mastering the law.", portrait: IMAGE_URLS.ISAGANI, next_scene: 'MAJOR_DECISION_1_A' },
 
             // --- PATH B: ACTION (Revolution) ---
-            'PATH_ACTION': { image: IMAGE_URLS.STREET, speaker: "Isagani", text_filipino: "Bitiwan mo siya! Wala kang karapatang ganyan! *Akin ang atensyon mo*.", text_english: "Let him go! You have no right to act this way! *My attention is yours*.", portrait: IMAGE_URLS.GUARD, next_scene: 'MAJOR_DECISION_1_A' }, 
+            'PATH_ACTION': { image: IMAGE_URLS.CONFRONTATION, speaker: "Isagani", text_filipino: "Bitiwan mo siya! Wala kang karapatang ganyan! *Akin ang atensyon mo*.", text_english: "Let him go! You have no right to act this way! *My attention is yours*.", portrait: null, next_scene: 'MAJOR_DECISION_1_A' }, 
             // 'TIME_PASSES_B': REMOVED - merged logic into PATH_ACTION
 
             // --- MAJOR DECISION 1: THE MENTOR'S GIFT (Strategic Weight) ---
