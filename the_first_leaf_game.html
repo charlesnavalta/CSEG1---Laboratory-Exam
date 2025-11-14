@@ -1,483 +1,531 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>The First Leaf - Decisions That Define Us</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>The First Leaf — Decisions That Define Us</title>
 
-  <!-- Tailwind CDN (optional) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font imports for theme -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Root Variables and Global Styles --- */
+        :root{
+            --primary-color:#5D4037; /* Deep Brown */
+            --secondary-color:#8D6E63; /* Medium Brown */
+            --text-color:#F5F5F5; /* Light Gray */
+            --dialogue-bg: rgba(45,31,26,0.95); /* Dark transparent brown */
+            --accent-color:#4CAF50; /* Green (The Leaf/Hope) */
+            --font-serif: 'Merriweather', serif; /* For titles/speaker names */
+            --font-sans: 'Inter', sans-serif; /* For body text/UI */
+        }
+        
+        /* Ensures the page uses full viewport space for responsiveness */
+        html,body{
+            height:100vh;
+            width:100vw;
+            margin:0;
+            font-family:var(--font-sans);
+            background:#111;
+            color:var(--text-color);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+            box-sizing:border-box;
+            overflow: hidden; /* Prevent bounce/scroll issues */
+        }
 
-  <style>
-    :root{
-      --primary-color:#5D4037;
-      --secondary-color:#8D6E63;
-      --text-color:#F5F5F5;
-      --dialogue-bg: rgba(45,31,26,0.95);
-      --accent-color:#4CAF50;
-      --font-serif: 'Times New Roman', serif;
-      --font-sans: 'Inter', sans-serif;
-    }
+        /* --- Game Wrapper (Fixed Aspect Ratio on Desktop) --- */
+        #game-wrapper{
+            width:100%;
+            max-width:980px; 
+            height:680px; /* Fixed height for desktop presentation */
+            max-height: calc(100vh - 40px); /* Responsive max height */
+            border-radius:12px;
+            overflow:hidden;
+            box-shadow:0 12px 40px rgba(0,0,0,0.6);
+            position:relative;
+            background:linear-gradient(180deg,var(--primary-color),#3b2a24);
+            display:grid;
+            grid-template-rows:1fr 0.42fr; /* Image takes 58%, Dialogue takes 42% */
+        }
 
-    html,body{
-      height:100%;
-      margin:0;
-      font-family:var(--font-sans);
-      background:#111;
-      color:var(--text-color);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:20px;
-      box-sizing:border-box;
-    }
+        /* --- Image / Portrait Area --- */
+        #scene-image{
+            position:relative;
+            background-size:cover;
+            background-position:center;
+            transition:filter .6s ease, background-image .5s ease;
+            display:flex;
+            align-items:flex-end;
+            justify-content:center;
+            padding:0; 
+        }
+        .tension-filter{
+            filter: grayscale(.8) brightness(.65) contrast(1.15);
+        }
+        
+        /* FIX: Add Ground Separator Line */
+        #scene-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 10px; /* Height of the separator */
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+            z-index: 1; /* Ensure it is above the background but below the portrait */
+        }
 
-    /* Container */
-    #game-wrapper{
-      width:100%;
-      max-width:980px;
-      height:680px;
-      border-radius:12px;
-      overflow:hidden;
-      box-shadow:0 12px 40px rgba(0,0,0,0.6);
-      position:relative;
-      background:linear-gradient(180deg,var(--primary-color),#3b2a24);
-      display:grid;
-      grid-template-rows: 1fr 0.42fr; /* scene + dialogue */
-    }
+        /* --- Portrait Positioning Fix (OPTIMIZED FOR SPRITES & CROPPING) --- */
+        #char-portrait{
+            position:absolute;
+            
+            /* FIX 1: Raise Sprite to Prevent Feet Cutoff */
+            bottom: 5%; /* Pushes the character slightly above the dialogue boundary */
+            
+            /* Position and Sizing */
+            left:50%;
+            transform:translateX(-50%) scale(1.05);
+            max-height: 95%; 
+            width: auto;
+            max-width: 40%; 
+            object-fit: contain;
+            transition: opacity 0.3s ease;
+            z-index: 2; /* Ensure it is above the ground separator */
+            
+            /* FIX 2: Add Separation (Shadow) */
+            filter:drop-shadow(0 0 12px rgba(255, 255, 255, 0.4)) drop-shadow(0 8px 18px rgba(0,0,0,0.8));
+            clip-path: inset(0 0 0 0); /* REMOVING CROP - Relying on transparent sprites now */
+        }
 
-    /* Scene image */
-    #scene-image{
-      position:relative;
-      background-size:cover;
-      background-position:center;
-      transition:filter .6s ease, background-image .5s ease;
-      display:flex;
-      align-items:flex-start;
-      justify-content:flex-end;
-      padding:12px;
-    }
-    .tension-filter{
-      filter: grayscale(.8) brightness(.65) contrast(1.15);
-    }
+        /* --- Dialogue Box --- */
+        #dialogue-box{
+            background:var(--dialogue-bg);
+            padding:18px;
+            border-top:4px solid var(--accent-color);
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+        }
+        #speaker-name{
+            font-family:var(--font-serif);
+            color:var(--accent-color);
+            font-weight:700;
+            display:inline-block;
+            padding:4px 8px;
+            background:rgba(0,0,0,0.35);
+            border-radius:6px;
+            font-size:1.1rem;
+        }
+        #text-content{
+            flex:1;
+            overflow:auto;
+            font-size:1rem;
+            line-height:1.5;
+        }
+        .translated-text{
+            display:block;
+            margin-top:8px;
+            font-style:italic;
+            color:var(--secondary-color);
+            font-size:.92rem;
+        }
 
-    /* Dialogue box */
-    #dialogue-box{
-      background:var(--dialogue-bg);
-      padding:18px;
-      border-top:4px solid var(--accent-color);
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    #speaker-name{
-      font-family:var(--font-serif);
-      color:var(--accent-color);
-      font-weight:700;
-      display:inline-block;
-      padding:4px 8px;
-      background:rgba(0,0,0,0.35);
-      border-radius:6px;
-      font-size:1.1rem;
-    }
-    #text-content{
-      flex:1;
-      overflow:auto;
-      font-size:1rem;
-      line-height:1.5;
-    }
-    .translated-text{
-      display:block;
-      margin-top:8px;
-      font-style:italic;
-      color:var(--secondary-color);
-      font-size:.92rem;
-    }
-
-    /* Choices & next */
-    #choices-container{
-      display:grid;
-      gap:8px;
-      grid-template-columns:1fr;
-    }
-    .choice-btn{
-      padding:10px 14px;
-      border-radius:8px;
-      border:2px solid var(--accent-color);
-      background:var(--primary-color);
-      color:var(--text-color);
-      font-weight:700;
-      cursor:pointer;
-      text-align:left;
-      transition:transform .15s ease, background .15s;
-    }
-    .choice-btn:hover{
-      transform:translateY(-3px);
-      background:var(--accent-color);
-      color:var(--primary-color);
-      box-shadow:0 6px 14px rgba(0,0,0,0.25);
-    }
-
-    /* Small top menu button */
-    #menu-button{
-      position:absolute;
-      top:12px;
-      right:12px;
-      z-index:5;
-      padding:8px 10px;
-      border-radius:8px;
-      background:rgba(0,0,0,0.55);
-      color:white;
-      border:0;
-      cursor:pointer;
-      font-size:.88rem;
-    }
-
-    /* Overlays (start/pause/ending) */
-    .overlay{
-      position:absolute;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:rgba(0,0,0,0.85);
-      z-index:20;
-      gap:14px;
-      padding:24px;
-      text-align:center;
-    }
-    .overlay.hidden{ display:none; }
-
-    .start-card{
-      max-width:720px;
-      width:100%;
-      padding:20px;
-      border-radius:12px;
-      background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.25));
-      box-shadow:0 8px 24px rgba(0,0,0,0.6);
-    }
-    .start-image{
-      height:220px;
-      background-size:contain;
-      background-position:center;
-      background-repeat:no-repeat;
-      border-radius:8px;
-      margin-bottom:12px;
-    }
-    .btn-lg{
-      padding:12px 18px;
-      border-radius:10px;
-      font-weight:800;
-      cursor:pointer;
-      border:0;
-    }
-    .btn-green{ background:#16a34a; color:white; }
-    .btn-green:hover{ filter:brightness(.93); }
-    .btn-red{ background:#dc2626; color:white; }
-
-    /* Ending screen text */
-    #ending-screen .ending-card{ max-width:720px; }
-
-    /* Responsive tweaks */
-    @media (max-width:720px){
-      #game-wrapper{ height:100vh; max-width:100%; border-radius:0; }
-      .start-image{ height:160px; }
-      #scene-image{ padding:8px; }
-      #dialogue-box{ padding:12px; }
-    }
-  </style>
+        /* --- Choices and Buttons --- */
+        #choices-container{
+            display:grid;
+            gap:8px;
+            grid-template-columns:1fr;
+        }
+        .choice-btn{
+            padding:10px 14px;
+            border-radius:8px;
+            border:2px solid var(--accent-color);
+            background:var(--primary-color);
+            color:var(--text-color);
+            font-weight:700;
+            cursor:pointer;
+            text-align:left;
+            transition:transform .15s ease, background .15s;
+        }
+        .choice-btn:hover{
+            transform:translateY(-3px);
+            background:var(--accent-color);
+            color:var(--primary-color);
+            box-shadow:0 6px 14px rgba(0,0,0,0.25);
+        }
+        #menu-button{
+            position:absolute;
+            top:12px;
+            right:12px;
+            z-index:5;
+            padding:8px 10px;
+            border-radius:8px;
+            background:rgba(0,0,0,0.55);
+            color:white;
+            border:0;
+            cursor:pointer;
+            font-size:.88rem;
+        }
+        
+        /* --- Overlays (Menus) --- */
+        .overlay{
+            position:absolute;
+            inset:0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:rgba(0,0,0,0.95); /* Slightly darker overlay for focus */
+            z-index:20;
+            gap:14px;
+            padding:24px;
+            text-align:center;
+        }
+        .overlay.hidden{
+            display:none;
+        }
+        .start-card{
+            max-width:720px;
+            width:100%;
+            padding:20px;
+            border-radius:12px;
+            background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.25));
+            box-shadow:0 8px 24px rgba(0,0,0,0.6);
+        }
+        .start-image{
+            height:220px;
+            background-size:contain;
+            background-position:center;
+            background-repeat:no-repeat;
+            border-radius:8px;
+            margin-bottom:12px;
+        }
+        .btn-lg{
+            padding:12px 18px;
+            border-radius:10px;
+            font-weight:800;
+            cursor:pointer;
+            border:0;
+        }
+        .btn-green{
+            background:#16a34a;
+            color:white;
+        }
+        .btn-red{
+            background:#dc2626;
+            color:white;
+        }
+        
+        /* --- Mobile Responsiveness (Fixing the sizing issue) --- */
+        @media (max-width:720px){
+            html, body {
+                padding: 0; /* Use full viewport */
+            }
+            #game-wrapper{
+                height:100vh; 
+                max-height:100vh;
+                max-width:100%;
+                width: 100vw; /* Force full screen width */
+                border-radius:0;
+                grid-template-rows:1fr 0.5fr; /* Give more space to dialogue on phone */
+            }
+            .start-card {
+                margin: 20px;
+                padding: 15px;
+            }
+            .start-image{
+                height:160px;
+            }
+            #dialogue-box{
+                padding:12px;
+            }
+            #char-portrait {
+                max-height: 70%; /* Adjust portrait size for smaller screen space */
+                max-width: 50%; /* Widen a bit for mobile */
+                clip-path: inset(0 0 0 0);
+            }
+        }
+    </style>
 </head>
 <body>
-
-  <div id="game-wrapper">
-    <!-- Scene & Menu Button -->
-    <div id="scene-image" style="background-image: url('https://placehold.co/900x420/a8795d/ffffff?text=Calamba,+1887+-+The+Riverbank');">
-      <button id="menu-button">Menu</button>
-    </div>
-
-    <!-- Dialogue -->
-    <div id="dialogue-box">
-      <div id="speaker-name">Narrator</div>
-      <div id="text-content"></div>
-
-      <div id="choices-container">
-        <!-- Next button shown when there are no choices -->
-        <button id="next-button" class="choice-btn">Sige (Continue)</button>
-      </div>
-    </div>
-
-    <!-- START MENU (overlay) -->
-    <div id="start-menu" class="overlay">
-      <div class="start-card">
-        <h1 style="font-size:2rem;color:var(--accent-color);margin:0 0 8px;">The First Leaf</h1>
-        <h2 style="margin:0 0 12px;color:#ddd;font-weight:600;">Decisions That Define Us</h2>
-        <div id="start-menu-image" class="start-image" style="background-image:url('https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/isagani.png?raw=true');"></div>
-        <div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
-          <button id="start-game-button" class="btn-lg btn-green">BEGIN JOURNEY</button>
-          <button id="open-credits" class="btn-lg" style="background:#333;color:#fff;">Credits</button>
+    <div id="game-wrapper">
+        <!-- Scene Image Area -->
+        <div id="scene-image" style="background-image: url('https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/bayan.png');">
+            
+            <button id="menu-button">Menu</button>
+            
+            <!-- Character Portrait (Dynamically updated) -->
+            <!-- Positioning changed to center the image horizontally -->
+            <img id="char-portrait" src="https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/sprite/isaganisprite.png" alt="Character Portrait" style="position:absolute;left:50%;transform:translateX(-50%) scale(1.05);bottom:5%;display:block;max-height:90%;max-width:35%;">
+            
         </div>
-        <p style="color:#aaa;margin-top:10px;font-size:.92rem;">Based on the historical weight of Calamba, 1887</p>
-      </div>
-    </div>
 
-    <!-- PAUSE MENU (overlay) -->
-    <div id="pause-menu" class="overlay hidden">
-      <div style="text-align:center;">
-        <h1 style="color:var(--accent-color);font-size:2rem;margin-bottom:8px;">Paused</h1>
-        <div style="display:flex;gap:12px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
-          <button id="resume-button" class="btn-lg btn-green">Resume</button>
-          <button id="restart-button" class="btn-lg btn-red">Restart Game</button>
+        <!-- Dialogue and Choices Area -->
+        <div id="dialogue-box">
+            <div id="speaker-name">Narrator</div>
+            <div id="text-content"></div>
+            <div id="choices-container">
+                <button id="next-button" class="choice-btn">Sige (Continue)</button>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- ENDING SCREEN (overlay) -->
-    <div id="ending-screen" class="overlay hidden">
-      <div class="start-card ending-card">
-        <h1 id="ending-title" style="font-size:1.6rem;color:var(--accent-color);margin-bottom:6px;"></h1>
-        <p id="ending-text" style="color:#ddd;margin-bottom:12px;"></p>
-        <p id="ending-score" style="color:#bbb;margin-bottom:8px;font-family:monospace;"></p>
-        <div style="display:flex;gap:12px;justify-content:center;">
-          <button id="end-restart-button" class="btn-lg btn-green">Play Again</button>
+        <!-- Start Menu Overlay -->
+        <div id="start-menu" class="overlay">
+            <div class="start-card">
+                <h1 style="font-size:2rem;color:var(--accent-color);margin:0 0 8px;font-family:var(--font-serif);">The First Leaf</h1>
+                <h2 style="margin:0 0 12px;color:#ddd;font-weight:600;">Decisions That Define Us</h2>
+                <div id="start-menu-image" class="start-image" style="background-image:url('https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/sprite/isaganisprite.png');"></div>
+                <div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
+                    <button id="start-game-button" class="btn-lg btn-green">BEGIN JOURNEY</button>
+                    <button id="open-credits" class="btn-lg" style="background:#333;color:#fff;">Credits</button>
+                </div>
+                <p style="color:#aaa;margin-top:10px;font-size:.92rem;">Based on the historical weight of Calamba, 1887</p>
+            </div>
         </div>
-      </div>
+
+        <!-- Pause Menu Overlay -->
+        <div id="pause-menu" class="overlay hidden">
+            <div style="text-align:center;">
+                <h1 style="color:var(--accent-color);font-size:2rem;margin-bottom:8px;">Paused</h1>
+                <div style="display:flex;gap:12px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
+                    <button id="resume-button" class="btn-lg btn-green">Resume</button>
+                    <button id="restart-button" class="btn-lg btn-red">Restart Game</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ending Screen Overlay -->
+        <div id="ending-screen" class="overlay hidden">
+            <div class="start-card ending-card">
+                <h1 id="ending-title" style="font-size:1.6rem;color:var(--accent-color);margin-bottom:6px;font-family:var(--font-serif);"></h1>
+                <p id="ending-text" style="color:#ddd;margin-bottom:12px;"></p>
+                <p id="ending-score" style="color:#bbb;margin-bottom:8px;font-family:monospace;"></p>
+                <div style="display:flex;gap:12px;justify-content:center;">
+                    <button id="end-restart-button" class="btn-lg btn-green">Play Again</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-  </div>
-
-  <!-- Game Script: structured and easy to extract into a separate file -->
-  <script type="module">
-    // --- IMAGE LINKS (change to raw urls if needed) ---
-    const IMAGE_URLS = {
-      ISAGANI: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/isagani.png',
-      GUARD: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/guard.png',
-      FARMER: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/farmer.png',
-      MENTOR: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/mentor.png',
-      RIVERBANK: 'https://placehold.co/900x420/8D6E63/F5F5F5?text=Calamba+Riverbank',
-      OLD_HOUSE: 'https://placehold.co/900x420/5D4037/F5F5F5?text=The+Old+Ancestral+House',
-      STUDY: 'https://placehold.co/900x420/2E3D49/F5F5F5?text=Manila+Study+Room',
-      STREET: 'https://placehold.co/900x420/757575/F5F5F5?text=A+Dark+Manila+Street',
-    };
-
-    // --- STATE ---
-    const gameState = {
-      currentScene: 'INTRO',
-      legacy: 0,
-      isPaused: false,
-    };
-
-    // --- SCENES (same structure as before) ---
-    const SCENES = {
-      'INTRO': {
-        image: IMAGE_URLS.RIVERBANK,
-        speaker: "Narrator",
-        text_filipino: "Calamba, Laguna, 1887. The air is thick with the scent of sugar cane and unspoken tension. Ikaw si Isagani, isang matalinong bata na nagmamasid sa mundo.",
-        text_english: "Calamba, Laguna, 1887. The air is thick with the scent of sugar cane and unspoken tension. You are Isagani, a bright boy observing the world.",
-        next_scene: 'INJUSTICE_SIGHTED'
-      },
-      'INJUSTICE_SIGHTED': {
-        image: IMAGE_URLS.FARMER,
-        speaker: "Narrator",
-        text_filipino: "Sa tabi ng ilog, nakita mo si Mang Nestor, isang magsasaka, na kinukutya ng isang Guwardiya Sibil.",
-        text_english: "By the river, you see Mang Nestor, a peasant farmer, being harassed by a Civil Guard.",
-        next_scene: 'GUARD_DIALOGUE'
-      },
-      'GUARD_DIALOGUE': {
-        image: IMAGE_URLS.GUARD,
-        speaker: "Guwardiya Sibil",
-        text_filipino: "¡El tributo! Nasaan ang buwis para sa mga panindang ito? Siguro tinatago mo, ha? Wala kang respeto!",
-        text_english: "(Spanish: The tribute! Where is the tax for these goods? You are hiding it, aren't you? You have no respect!)",
-        next_scene: 'FARMER_PLEA'
-      },
-      'FARMER_PLEA': {
-        image: IMAGE_URLS.FARMER,
-        speaker: "Mang Nestor",
-        text_filipino: "Ginoo, *pakiusap*. Wala na kaming natira. Lahat po ay ibinigay na namin.",
-        text_english: "Sir, *I beg you*. We have nothing left. We have already given everything.",
-        next_scene: 'DECISION_1_INITIAL'
-      },
-
-      'DECISION_1_INITIAL': {
-        image: IMAGE_URLS.RIVERBANK,
-        speaker: "Narrator",
-        text_filipino: "Nakaramdam ka ng galit. Ngunit ano ang dapat gawin ng isang 10-taong gulang na bata?",
-        text_english: "You feel rage. But what is a 10-year-old boy supposed to do?",
-        choices: [
-          { text: "Quiet Witness: Retreat and write down every detail in secret.", next: 'PATH_REFORM', legacy_change: 1, feedback: "You prioritize evidence and safety. Legacy: +1" },
-          { text: "Bold Defender: Step forward and demand the Guard leave him alone.", next: 'PATH_ACTION', legacy_change: 2, feedback: "You prioritize direct action and justice. Legacy: +2" }
-        ]
-      },
-
-      'PATH_REFORM': { image: IMAGE_URLS.ISAGANI, speaker: "Isagani", text_filipino: "Ang panulat ay mas matalas kaysa sa espada. Isusulat ko ito sa aking talaarawan. Balang araw, magagamit ito.", text_english: "The pen is mightier than the sword. I will write this in my journal. Someday, it will be useful.", next_scene: 'TIME_PASSES_A' },
-      'TIME_PASSES_A': { image: IMAGE_URLS.STUDY, speaker: "Narrator", text_filipino: "Lumipas ang pitong taon. Naging isang matalinong estudyante ka, na nakatuon sa pag-aaral ng mga batas.", text_english: "Seven years pass. You become a disciplined student, focused on mastering the law.", next_scene: 'MAJOR_DECISION_1_A' },
-
-      'PATH_ACTION': { image: IMAGE_URLS.GUARD, speaker: "Isagani", text_filipino: "Bitiwan mo siya! Wala kang karapatang ganyan! *Akin ang atensyon mo*.", text_english: "Let him go! You have no right to act this way! *My attention is yours*.", next_scene: 'TIME_PASSES_B' },
-      'TIME_PASSES_B': { image: IMAGE_URLS.STREET, speaker: "Narrator", text_filipino: "Pinarusahan ka. Ngunit ang iyong tapang ay kumalat. Lumipas ang pitong taon, at ngayon ay ikaw ang isang mapusok na tinig.", text_english: "You were punished. But your bravery spread. Seven years pass, and you are now a passionate voice.", next_scene: 'MAJOR_DECISION_1_A' },
-
-      'MAJOR_DECISION_1_A': {
-        image: IMAGE_URLS.MENTOR,
-        speaker: "Ginoong Emilio (Mentor)",
-        text_filipino: "Isagani, may dalawang daan sa harap mo. Ang isa ay kaligtasan, ang isa ay katotohanan. Alin ang pipiliin mo, *aking kaibigan*?",
-        text_english: "Isagani, there are two paths before you. One is safety, the other is truth. Which will you choose, *my friend*?",
-        choices: [
-          { text: "Option A: Accept the Scholar's Grant (Safety and Legal Power)", next: 'PATH_LEGAL_POWER', legacy_change: 0, feedback: "Legacy remains low (Reform). You gain power within the system." },
-          { text: "Option B: Accept the Forbidden Book (Truth and Danger)", next: 'PATH_RADICAL_TRUTH', legacy_change: 2, feedback: "Legacy increases (Action). You gain radical thought, but risk exposure." }
-        ]
-      },
-
-      'PATH_LEGAL_POWER': { image: IMAGE_URLS.STUDY, speaker: "Narrator", text_filipino: "Pumasok ka sa Batasan. Ngayon, may hawak kang legal na Petition para sa pagbabago ng lupa.", text_english: "You entered the legal profession. You now hold a powerful legal Petition for land reform.", next_scene: 'MAJOR_DECISION_2_INTRO' },
-      'PATH_RADICAL_TRUTH': { image: IMAGE_URLS.OLD_HOUSE, speaker: "Narrator", text_filipino: "Ikaw ay naging isang manunulat. May hawak ka na ngayong matibay na ebidensya ng malawakang korupsyon ng opisyal.", text_english: "You became a writer. You now hold solid evidence of widespread official corruption.", next_scene: 'MAJOR_DECISION_2_INTRO' },
-
-      'MAJOR_DECISION_2_INTRO': { image: IMAGE_URLS.RIVERBANK, speaker: "Kaibigan (Friend)", text_filipino: "Isagani, *mag-ingat ka*. Kung ilalathala mo iyan, parurusahan tayo. Pakiusap, sunugin mo na lang iyan.", text_english: "Isagani, *be careful*. If you publish that, they will punish us all. Please, just burn it.", visual_cue: 'tension-filter', next_scene: 'MAJOR_DECISION_2' },
-
-      'MAJOR_DECISION_2': {
-        image: IMAGE_URLS.RIVERBANK,
-        speaker: "Narrator",
-        text_filipino: "Ang katotohanan o ang kaligtasan ng komunidad? Ito ang huling pagsubok na magpapaliwanag kung sino ka.",
-        text_english: "Truth or the community's safety? This is the final trial that defines who you are.",
-        choices: [
-          { text: "Option A: Fulfill the Duty (Publish/Submit the Document)", next: 'CONSEQUENCE_OF_TRUTH', legacy_change: 2, feedback: "You chose heroic idealism. Legacy: +2" },
-          { text: "Option B: Protect the Community (Silence and Burn the Document)", next: 'CONSEQUENCE_OF_SILENCE', legacy_change: -2, feedback: "You chose immediate safety. Legacy: -2" }
-        ]
-      },
-
-      'CONSEQUENCE_OF_TRUTH': { image: IMAGE_URLS.STREET, speaker: "Narrator", visual_cue: 'tension-filter', text_filipino: "Ang paglalathala ay nagdulot ng gulo at panganib. Ikaw ay naging *persona non grata*. Ngunit ang iyong gawa ay nabuhay.", text_english: "The publication caused chaos and danger. You became *persona non grata*. But your work lived on.", next_scene: 'ENDING_B_MARTYR' },
-
-      'CONSEQUENCE_OF_SILENCE': { image: IMAGE_URLS.STUDY, speaker: "Narrator", visual_cue: 'none', text_filipino: "Ang Calamba ay ligtas. Ikaw ay nabuhay nang matagal, ginamit ang batas para sa maliliit na pagbabago. Ngunit sa bawat umaga, nadarama mo ang pagsisisi.", text_english: "Calamba remained safe. You lived a long life, using the law for small, incremental changes. But with every sunrise, you felt regret.", next_scene: 'ENDING_A_REFORMER' },
-
-      'ENDING_A_REFORMER': { ending:true, title:"ENDING A: THE QUIET REFORMER", text:"You chose safety over symbolic change. You created a life of comfort and stability. Your work brought small improvements to your town, but the larger system remained intact. You defined your life not by the thunder of revolution, but by the quiet power of prudence. History remembers your diligence, but not your name." },
-
-      'ENDING_B_MARTYR': { ending:true, title:"ENDING B: THE TRAGIC MARTYR", text:"Your final choice ignited the spark of change. Though you faced exile and hardship, your published words and actions became the rallying cry for a future generation. You sacrificed your comfort and security for the truth. You defined your life by your courage. History remembers you as the man who cast the first, defining leaf of rebellion." }
-    };
-
-    // --- DOM references ---
-    const sceneImage = document.getElementById('scene-image');
-    const speakerName = document.getElementById('speaker-name');
-    const textContent = document.getElementById('text-content');
-    const choicesContainer = document.getElementById('choices-container');
-    const nextButton = document.getElementById('next-button');
-
-    const startMenu = document.getElementById('start-menu');
-    const pauseMenu = document.getElementById('pause-menu');
-    const endingScreen = document.getElementById('ending-screen');
-
-    // overlay buttons
-    document.getElementById('menu-button').addEventListener('click', togglePause);
-    document.getElementById('resume-button').addEventListener('click', togglePause);
-    document.getElementById('restart-button').addEventListener('click', restartGame);
-    document.getElementById('start-game-button').addEventListener('click', () => {
-      startMenu.classList.add('hidden');
-      loadScene('INTRO');
-    });
-    document.getElementById('end-restart-button').addEventListener('click', () => {
-      endingScreen.classList.add('hidden');
-      restartGame();
-    });
-
-    // --- Core functions ---
-    function loadScene(sceneId){
-      const scene = SCENES[sceneId];
-      if(!scene){ console.warn('Missing scene', sceneId); return; }
-
-      // update current
-      gameState.currentScene = sceneId;
-
-      // visuals
-      sceneImage.style.backgroundImage = `url('${scene.image || IMAGE_URLS.RIVERBANK}')`;
-      // visual cue
-      if(scene.visual_cue === 'tension-filter') sceneImage.classList.add('tension-filter');
-      else sceneImage.classList.remove('tension-filter');
-
-      // text
-      speakerName.textContent = scene.speaker || 'Narrator';
-      textContent.innerHTML = `${scene.text_filipino || ''}<span class="translated-text">(${scene.text_english || ''})</span>`;
-
-      // choices / next
-      choicesContainer.innerHTML = ''; // clear
-      if(scene.ending){
-        showEnding(scene);
-        return;
-      }
-
-      if(scene.choices && Array.isArray(scene.choices)){
-        scene.choices.forEach((choice, idx) => {
-          const btn = document.createElement('button');
-          btn.className = 'choice-btn';
-          btn.textContent = choice.text;
-          btn.addEventListener('click', () => handleChoice(choice));
-          choicesContainer.appendChild(btn);
-        });
-      } else {
-        // next button
-        nextButton.style.display = 'block';
-        nextButton.onclick = () => {
-          if(scene.next_scene) loadScene(scene.next_scene);
+    <script type="module">
+        // --- START IMAGE URLS ---
+        const IMAGE_URLS = {
+            // CHARACTER SPRITES (Updated to use sprite paths)
+            ISAGANI: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/sprite/isaganisprite.png',
+            GUARD: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/sprite/guardsprite.png',
+            FARMER: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/sprite/farmersprite.png',
+            MENTOR: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/sprite/mentorsprite.png',
+            
+            // Background Scenes (Confirmed working via GitHub Raw)
+            BAYAN: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/bayan.png', 
+            STUDYROOM: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/studyroom.png', 
+            CHURCH: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/church.png', 
+            REVOLUTION: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/revolution.png', 
+            WRITER: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/writer.png', 
+            
+            // Placeholders
+            OLD_HOUSE: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/writer.png', 
+            STREET: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/revolution.png', 
+            DEFAULT: 'https://placehold.co/980x420/555555/FFFFFF?text=PLACEHOLDER%3A+Laguna+Fields+at+Sunset',
         };
-        choicesContainer.appendChild(nextButton);
-      }
-    }
+        // --- END IMAGE URLS ---
 
-    function handleChoice(choice){
-      // adjust legacy (guard against undefined)
-      const delta = Number(choice.legacy_change || 0);
-      gameState.legacy += delta;
+        let gameState = { currentScene: 'INTRO', legacy: 0, isPaused: false };
 
-      // show feedback briefly, then move on
-      const fb = document.createElement('div');
-      fb.style.marginTop = '8px';
-      fb.style.fontSize = '.9rem';
-      fb.style.color = '#f6e05e';
-      fb.style.fontWeight = '700';
-      fb.textContent = choice.feedback || '';
-      textContent.appendChild(fb);
+        const SCENES = {
+            'INTRO': { image: IMAGE_URLS.BAYAN, speaker: "Narrator", text_filipino: "Calamba, Laguna, 1887. The air is thick with the scent of sugar cane and unspoken tension. Ikaw si Isagani, isang matalinong bata na nagmamasid sa mundo.", text_english: "Calamba, Laguna, 1887. The air is thick with the scent of sugar cane and unspoken tension. You are Isagani, a bright boy observing the world.", next_scene: 'INJUSTICE_SIGHTED' },
+            'INJUSTICE_SIGHTED': { image: IMAGE_URLS.BAYAN, speaker: "Narrator", text_filipino: "Sa tabi ng ilog, nakita mo si Mang Nestor, isang magsasaka, na kinukutya ng isang Guwardiya Sibil.", text_english: "By the river, you see Mang Nestor, a peasant farmer, being harassed by a Civil Guard.", portrait: IMAGE_URLS.FARMER, next_scene: 'GUARD_DIALOGUE' },
+            'GUARD_DIALOGUE': { image: IMAGE_URLS.BAYAN, speaker: "Guwardiya Sibil", text_filipino: "¡El tributo! Nasaan ang buwis para sa mga panindang ito? Siguro tinatago mo, ha? Wala kang respeto!", text_english: "(Spanish: The tribute! Where is the tax for these goods? You are hiding it, aren't you? You have no respect!)", portrait: IMAGE_URLS.GUARD, next_scene: 'FARMER_PLEA' },
+            'FARMER_PLEA': { image: IMAGE_URLS.BAYAN, speaker: "Mang Nestor", text_filipino: "Ginoo, *pakiusap*. Wala na kaming natira. Lahat po ay ibinigay na namin.", text_english: "Sir, *I beg you*. We have nothing left. We have already given everything.", portrait: IMAGE_URLS.FARMER, next_scene: 'DECISION_1_INITIAL' },
+            
+            // --- INITIAL DEFINING CHOICE ---
+            'DECISION_1_INITIAL': { 
+                image: IMAGE_URLS.BAYAN, 
+                speaker: "Narrator", 
+                text_filipino: "Nakaramdam ka ng galit. Ngunit ano ang dapat gawin ng isang 10-taong gulang na bata? Ano ang magiging simula ng iyong pamana?", 
+                text_english: "You feel rage. But what is a 10-year-old boy supposed to do? What will be the start of your legacy?", 
+                portrait: IMAGE_URLS.ISAGANI,
+                choices: [
+                    { text: "Quiet Witness: Retreat and write down every detail in secret.", next: 'PATH_REFORM', legacy_change: 1, feedback: "You prioritize evidence and safety. Legacy: +1" },
+                    { text: "Bold Defender: Step forward and demand the Guard leave him alone.", next: 'PATH_ACTION', legacy_change: 2, feedback: "You prioritize direct action and justice. Legacy: +2" }
+                ] 
+            },
 
-      // disable input while waiting
-      choicesContainer.querySelectorAll('button').forEach(b => b.disabled = true);
+            // --- PATH A: REFORM (Intellectual) ---
+            'PATH_REFORM': { image: IMAGE_URLS.BAYAN, speaker: "Isagani", text_filipino: "Ang panulat ay mas matalas kaysa sa espada. Isusulat ko ito sa aking talaarawan. Balang araw, magagamit ito.", text_english: "The pen is mightier than the sword. I will write this in my journal. Someday, it will be useful.", portrait: IMAGE_URLS.ISAGANI, next_scene: 'TIME_PASSES_A' },
+            'TIME_PASSES_A': { image: IMAGE_URLS.STUDYROOM, speaker: "Narrator", text_filipino: "Lumipas ang pitong taon. Naging isang matalinong estudyante ka, na nakatuon sa pag-aaral ng mga batas.", text_english: "Seven years pass. You become a disciplined student, focused on mastering the law.", portrait: IMAGE_URLS.ISAGANI, next_scene: 'MAJOR_DECISION_1_A' },
 
-      setTimeout(() => {
-        if(choice.next) loadScene(choice.next);
-      }, 900);
-    }
+            // --- PATH B: ACTION (Revolution) ---
+            'PATH_ACTION': { image: IMAGE_URLS.STREET, speaker: "Isagani", text_filipino: "Bitiwan mo siya! Wala kang karapatang ganyan! *Akin ang atensyon mo*.", text_english: "Let him go! You have no right to act this way! *My attention is yours*.", portrait: IMAGE_URLS.GUARD, next_scene: 'MAJOR_DECISION_1_A' }, 
+            // 'TIME_PASSES_B': REMOVED - merged logic into PATH_ACTION
 
-    function showEnding(scene){
-      // reveal ending overlay
-      document.getElementById('ending-title').textContent = scene.title || '';
-      document.getElementById('ending-text').textContent = scene.text || '';
-      document.getElementById('ending-score').textContent = `Final Legacy Score: ${gameState.legacy}`;
-      endingScreen.classList.remove('hidden');
-    }
+            // --- MAJOR DECISION 1: THE MENTOR'S GIFT (Strategic Weight) ---
+            'MAJOR_DECISION_1_A': { 
+                image: IMAGE_URLS.STUDYROOM, // Using Studyroom for the choice scene
+                speaker: "Ginoong Emilio (Mentor)", 
+                text_filipino: "Isagani, may dalawang daan sa harap mo. Ang isa ay kaligtasan, ang isa ay katotohanan. Alin ang pipiliin mo, *aking kaibigan*?", 
+                text_english: "Isagani, there are two paths before you. One is safety, the other is truth. Which will you choose, *my friend*?", 
+                portrait: IMAGE_URLS.MENTOR,
+                choices: [
+                    { text: "Option A: Accept the Scholar's Grant (Safety and Legal Power)", next: 'PATH_LEGAL_POWER', legacy_change: 0, feedback: "Legacy remains low (Reform). You gain power within the system." },
+                    { text: "Option B: Accept the Forbidden Book (Truth and Danger)", next: 'PATH_RADICAL_TRUTH', legacy_change: 2, feedback: "Legacy increases (Action). You gain radical thought, but risk exposure." }
+                ] 
+            },
 
-    function restartGame(){
-      gameState.legacy = 0;
-      gameState.currentScene = 'INTRO';
-      gameState.isPaused = false;
-      pauseMenu.classList.add('hidden');
-      endingScreen.classList.add('hidden');
-      startMenu.classList.remove('hidden');
-      // reset scene image state
-      sceneImage.classList.remove('tension-filter');
-      sceneImage.style.backgroundImage = `url('${IMAGE_URLS.RIVERBANK}')`;
-      speakerName.textContent = 'Narrator';
-      textContent.innerHTML = '';
-      choicesContainer.innerHTML = '';
-      choicesContainer.appendChild(nextButton);
-    }
+            // --- PATH A1: LEGAL POWER ---
+            'PATH_LEGAL_POWER': { image: IMAGE_URLS.STUDYROOM, speaker: "Narrator", text_filipino: "Pumasok ka sa Batasan. Ngayon, may hawak kang legal na Petition para sa pagbabago ng lupa.", text_english: "You entered the legal profession. You now hold a powerful legal Petition for land reform.", portrait: IMAGE_URLS.ISAGANI, next_scene: 'MAJOR_DECISION_2_INTRO' },
 
-    function togglePause(){
-      gameState.isPaused = !gameState.isPaused;
-      if(gameState.isPaused){
-        pauseMenu.classList.remove('hidden');
-      } else {
-        pauseMenu.classList.add('hidden');
-      }
-    }
+            // --- PATH B1: RADICAL TRUTH ---
+            'PATH_RADICAL_TRUTH': { 
+                image: IMAGE_URLS.OLD_HOUSE, 
+                speaker: "Narrator", 
+                text_filipino: "Ikaw ay naging isang manunulat. May hawak ka na ngayong matibay na ebidensya ng malawakang korupsyon ng opisyal.", 
+                text_english: "You became a writer. You now hold solid evidence of widespread official corruption.", 
+                portrait: null, // <-- PORTRAIT REMOVED
+                next_scene: 'MAJOR_DECISION_2_INTRO' 
+            },
 
-    // --- Initialization: show intro text so Start Menu isn't an empty overlay ---
-    // Do not hide the start menu by hiding the whole container (that's the fix).
-    loadScene('INTRO'); // scene loaded but start menu remains on top until user presses Begin
-  </script>
+            // --- MAJOR DECISION 2: THE FINAL PLEA (Moral/Emotional Weight) ---
+            'MAJOR_DECISION_2_INTRO': { image: IMAGE_URLS.CHURCH, speaker: "Kaibigan (Friend)", text_filipino: "Isagani, *mag-ingat ka*. Kung ilalathala mo iyan, parurusahan tayo. Pakiusap, sunugin mo na lang iyan.", text_english: "Isagani, *be careful*. If you publish that, they will punish us all. Please, just burn it.", visual_cue: 'tension-filter', portrait: IMAGE_URLS.FARMER, next_scene: 'MAJOR_DECISION_2' },
+            
+            'MAJOR_DECISION_2': { 
+                image: IMAGE_URLS.CHURCH, 
+                speaker: "Narrator", 
+                text_filipino: "Ang katotohanan o ang kaligtasan ng komunidad? Ito ang huling pagsubok na magpapaliwanang kung sino ka.", 
+                text_english: "Truth or the community's safety? This is the final trial that defines who you are.", 
+                visual_cue: 'tension-filter', 
+                portrait: IMAGE_URLS.ISAGANI,
+                choices: [
+                    { text: "Option A: Fulfill the Duty (Publish/Submit the Document)", next: 'CONSEQUENCE_OF_TRUTH', legacy_change: 2, feedback: "You chose heroic idealism. Legacy: +2" },
+                    { text: "Option B: Protect the Community (Silence and Burn the Document)", next: 'CONSEQUENCE_OF_SILENCE', legacy_change: -2, feedback: "You chose immediate safety. Legacy: -2" }
+                ] 
+            },
+
+            // --- ENDING PATHS ---
+            'CONSEQUENCE_OF_TRUTH': { image: IMAGE_URLS.STREET, speaker: "Narrator", visual_cue: 'tension-filter', text_filipino: "Ang paglalathala ay nagdulot ng gulo at panganib. Ikaw ay naging *persona non grata*. Ngunit ang iyong gawa ay nabuhay.", text_english: "The publication caused chaos and danger. You became *persona non grata*. But your work lived on.", portrait: IMAGE_URLS.ISAGANI, next_scene: 'ENDING_B_MARTYR' },
+            'CONSEQUENCE_OF_SILENCE': { image: IMAGE_URLS.STUDYROOM, speaker: "Narrator", visual_cue: 'none', text_filipino: "Ang Calamba ay ligtas. Ikaw ay nabuhay nang matagal, ginamit ang batas para sa maliliit na pagbabago. Ngunit sa bawat umaga, nadarama mo ang pagsisisi.", text_english: "Calamba remained safe. You lived a long life, using the law for small, incremental changes. But with every sunrise, you felt regret.", portrait: IMAGE_URLS.ISAGANI, next_scene: 'ENDING_A_REFORMER' },
+
+            // --- RESOLUTION SCENES ---
+            'ENDING_A_REFORMER': { ending:true, title:"ENDING A: THE QUIET REFORMER", text:"You chose safety over symbolic change. You created a life of comfort and stability. Your work brought small improvements to your town, but the larger system remained intact. You defined your life not by the thunder of revolution, but by the quiet power of prudence. History remembers your diligence, but not your name." },
+            'ENDING_B_MARTYR': { ending:true, title:"ENDING B: THE TRAGIC MARTYR", text:"Your final choice ignited the spark of change. Though you faced exile and hardship, your published words and actions became the rallying cry for a future generation. You sacrificed your comfort and security for the truth. You defined your life by your courage. History remembers you as the man who cast the first, defining leaf of rebellion." }
+        };
+
+        const sceneImage = document.getElementById('scene-image');
+        const speakerName = document.getElementById('speaker-name');
+        const textContent = document.getElementById('text-content');
+        const choicesContainer = document.getElementById('choices-container');
+        const nextButton = document.getElementById('next-button');
+        const charPortrait = document.getElementById('char-portrait');
+
+        const startMenu = document.getElementById('start-menu');
+        const pauseMenu = document.getElementById('pause-menu');
+        const endingScreen = document.getElementById('ending-screen');
+
+        document.getElementById('menu-button').addEventListener('click', togglePause);
+        document.getElementById('resume-button').addEventListener('click', togglePause);
+        document.getElementById('restart-button').addEventListener('click', restartGame);
+        
+        document.getElementById('start-game-button').addEventListener('click', () => {
+            startMenu.classList.add('hidden');
+            loadScene('INTRO');
+        });
+        
+        document.getElementById('end-restart-button').addEventListener('click', () => {
+            endingScreen.classList.add('hidden');
+            restartGame();
+        });
+
+        // Hide the dummy button on initialization
+        nextButton.style.display = 'none';
+
+        function loadScene(sceneId){
+            const scene = SCENES[sceneId];
+            if(!scene){ console.warn('Missing scene', sceneId); return; }
+
+            gameState.currentScene = sceneId;
+            sceneImage.style.backgroundImage = `url('${scene.image || IMAGE_URLS.DEFAULT}')`;
+            
+            // Flow Theory: Tension Cue
+            if(scene.visual_cue === 'tension-filter') sceneImage.classList.add('tension-filter'); else sceneImage.classList.remove('tension-filter');
+
+            speakerName.textContent = scene.speaker || 'Narrator';
+            textContent.innerHTML = `${scene.text_filipino || ''}<span class="translated-text">(${scene.text_english || ''})</span>`;
+
+            // Dynamic Portrait Loading
+            if (scene.portrait) {
+                charPortrait.src = scene.portrait;
+                charPortrait.style.opacity = '1';
+                charPortrait.style.display = 'block';
+            } else {
+                charPortrait.style.opacity = '0'; // Hide the portrait if scene.portrait is null
+            }
+
+
+            choicesContainer.innerHTML = '';
+            
+            if(scene.ending){ showEnding(scene); return; }
+
+            if(scene.choices && Array.isArray(scene.choices)){
+                scene.choices.forEach((choice) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'choice-btn';
+                    btn.textContent = choice.text;
+                    btn.addEventListener('click', () => handleChoice(choice));
+                    choicesContainer.appendChild(btn);
+                });
+                nextButton.style.display = 'none';
+            } else {
+                nextButton.style.display = 'block';
+                nextButton.onclick = () => { if(scene.next_scene) loadScene(scene.next_scene); };
+                choicesContainer.appendChild(nextButton);
+            }
+        }
+
+        function handleChoice(choice){
+            gameState.legacy += Number(choice.legacy_change || 0);
+            const fb = document.createElement('div');
+            fb.style.marginTop = '8px';
+            fb.style.fontSize = '.9rem';
+            fb.style.color = '#f6e05e';
+            fb.style.fontWeight = '700';
+            fb.textContent = choice.feedback || '';
+            textContent.appendChild(fb);
+            choicesContainer.querySelectorAll('button').forEach(b => b.disabled = true);
+            setTimeout(() => { if(choice.next) loadScene(choice.next); }, 900);
+        }
+
+        function showEnding(scene){
+            document.getElementById('ending-title').textContent = scene.title || '';
+            document.getElementById('ending-text').textContent = scene.text || '';
+            document.getElementById('ending-score').textContent = `Final Legacy Score: ${gameState.legacy}`;
+            endingScreen.classList.remove('hidden');
+        }
+
+        function restartGame(){
+            gameState.legacy = 0; gameState.currentScene = 'INTRO'; gameState.isPaused = false;
+            pauseMenu.classList.add('hidden'); endingScreen.classList.add('hidden'); startMenu.classList.remove('hidden');
+            sceneImage.classList.remove('tension-filter'); 
+            charPortrait.style.opacity = '0'; 
+            
+            // Re-initialize UI elements
+            speakerName.textContent = 'Narrator'; textContent.innerHTML = ''; choicesContainer.innerHTML = ''; 
+            choicesContainer.appendChild(nextButton);
+            nextButton.style.display = 'none'; // Ensure 'Next' button is hidden until scene loads
+        }
+
+        function togglePause(){
+            gameState.isPaused = !gameState.isPaused;
+            if(gameState.isPaused) pauseMenu.classList.remove('hidden'); else pauseMenu.classList.add('hidden');
+        }
+
+        // Initialize preview but keep start menu visible
+        window.onload = () => {
+            loadScene('INTRO'); // Preload initial scene data
+            startMenu.classList.remove('hidden'); // Ensure start menu is shown
+        }
+    </script>
 </body>
 </html>
