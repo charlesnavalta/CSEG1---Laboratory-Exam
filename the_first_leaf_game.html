@@ -1,275 +1,286 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>The First Leaf - Decisions That Define Us</title>
+  <title>The First Leaf — Redesigned</title>
 
-  <!-- Tailwind CDN (optional) -->
+  <!-- Optional: Tailwind CDN for quick utilities (kept for convenience) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --primary-color:#5D4037;
-      --secondary-color:#8D6E63;
-      --text-color:#F5F5F5;
-      --dialogue-bg: rgba(45,31,26,0.95);
-      --accent-color:#4CAF50;
-      --font-serif: 'Times New Roman', serif;
-      --font-sans: 'Inter', sans-serif;
+      --bg-dark:#0f0f10;
+      --panel:#2d1f1a;
+      --accent:#4CAF50;
+      --muted:#9aa0a6;
+      --text:#f3f3f3;
+      --glass: rgba(10,10,10,0.64);
+      --radius:14px;
     }
 
-    html,body{
-      height:100%;
-      margin:0;
-      font-family:var(--font-sans);
-      background:#111;
-      color:var(--text-color);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
+    html,body{height:100%;margin:0;background:#0b0b0b;color:var(--text);font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    .wrap{
+      min-height:100vh;
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:20px;
+      padding:28px;
       box-sizing:border-box;
+      gap:20px;
     }
 
-    /* Container */
-    #game-wrapper{
+    /* Game frame */
+    #game-frame{
       width:100%;
-      max-width:980px;
-      height:680px;
-      border-radius:12px;
+      max-width:1100px;
+      height:72vh;
+      max-height:780px;
+      min-height:520px;
+      border-radius:var(--radius);
       overflow:hidden;
-      box-shadow:0 12px 40px rgba(0,0,0,0.6);
       position:relative;
-      background:linear-gradient(180deg,var(--primary-color),#3b2a24);
-      display:grid;
-      grid-template-rows: 1fr 0.42fr; /* scene + dialogue */
-    }
-
-    /* Scene image */
-    #scene-image{
-      position:relative;
-      background-size:cover;
-      background-position:center;
-      transition:filter .6s ease, background-image .5s ease;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
       display:flex;
-      align-items:flex-start;
-      justify-content:flex-end;
-      padding:12px;
-    }
-    .tension-filter{
-      filter: grayscale(.8) brightness(.65) contrast(1.15);
+      flex-direction:column;
+      background: linear-gradient(180deg,#3f2b24 0%, #2b1b16 100%);
+      border: 1px solid rgba(255,255,255,0.02);
     }
 
-    /* Dialogue box */
-    #dialogue-box{
-      background:var(--dialogue-bg);
+    /* Scene area (top) */
+    #scene {
+      flex: 1 1 60%;
+      position: relative;
+      background-color:#2b2b2b;
+      background-position:center;
+      background-size:cover;
+      background-repeat:no-repeat;
+      transition: background-image .5s ease, filter .6s ease;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
       padding:18px;
-      border-top:4px solid var(--accent-color);
+    }
+
+    /* small decorative gradient to improve legibility */
+    #scene::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%);
+      pointer-events:none;
+    }
+
+    /* Menu button at top-right of scene */
+    #menu-button {
+      position:absolute;
+      top:14px;
+      right:14px;
+      z-index:5;
+      border:0;
+      background:rgba(0,0,0,0.45);
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+      backdrop-filter: blur(4px);
+    }
+
+    .tension-filter{ filter: grayscale(.7) brightness(.65) contrast(1.1); }
+
+    /* dialogue box (bottom) */
+    #dialogue {
+      flex: 0 0 35%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.55));
+      border-top:4px solid var(--accent);
+      padding:18px 20px;
       display:flex;
       flex-direction:column;
       gap:10px;
+      box-sizing:border-box;
+      min-height:180px;
     }
-    #speaker-name{
-      font-family:var(--font-serif);
-      color:var(--accent-color);
+
+    #speaker {
+      font-family: 'Merriweather', serif;
+      color:var(--accent);
+      font-size:1.15rem;
       font-weight:700;
       display:inline-block;
-      padding:4px 8px;
       background:rgba(0,0,0,0.35);
-      border-radius:6px;
-      font-size:1.1rem;
+      padding:6px 10px;
+      border-radius:8px;
     }
-    #text-content{
+
+    #text {
       flex:1;
       overflow:auto;
-      font-size:1rem;
-      line-height:1.5;
+      padding-right:6px;
+      font-size:1.02rem;
+      line-height:1.55;
+      color:var(--text);
+      background:transparent;
     }
-    .translated-text{
+
+    .translated {
       display:block;
-      margin-top:8px;
+      margin-top:10px;
+      color:var(--muted);
       font-style:italic;
-      color:var(--secondary-color);
-      font-size:.92rem;
+      font-size:.95rem;
     }
 
-    /* Choices & next */
-    #choices-container{
-      display:grid;
-      gap:8px;
-      grid-template-columns:1fr;
-    }
-    .choice-btn{
-      padding:10px 14px;
-      border-radius:8px;
-      border:2px solid var(--accent-color);
-      background:var(--primary-color);
-      color:var(--text-color);
-      font-weight:700;
-      cursor:pointer;
-      text-align:left;
-      transition:transform .15s ease, background .15s;
-    }
-    .choice-btn:hover{
-      transform:translateY(-3px);
-      background:var(--accent-color);
-      color:var(--primary-color);
-      box-shadow:0 6px 14px rgba(0,0,0,0.25);
-    }
-
-    /* Small top menu button */
-    #menu-button{
-      position:absolute;
-      top:12px;
-      right:12px;
-      z-index:5;
-      padding:8px 10px;
-      border-radius:8px;
-      background:rgba(0,0,0,0.55);
-      color:white;
-      border:0;
-      cursor:pointer;
-      font-size:.88rem;
-    }
-
-    /* Overlays (start/pause/ending) */
-    .overlay{
-      position:absolute;
-      inset:0;
+    /* choices layout */
+    #controls {
       display:flex;
-      align-items:center;
+      gap:12px;
       justify-content:center;
-      background:rgba(0,0,0,0.85);
-      z-index:20;
-      gap:14px;
-      padding:24px;
-      text-align:center;
+      align-items:center;
+      margin-top:6px;
+      flex-wrap:wrap;
     }
-    .overlay.hidden{ display:none; }
 
-    .start-card{
-      max-width:720px;
-      width:100%;
-      padding:20px;
-      border-radius:12px;
-      background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.25));
-      box-shadow:0 8px 24px rgba(0,0,0,0.6);
-    }
-    .start-image{
-      height:220px;
-      background-size:contain;
-      background-position:center;
-      background-repeat:no-repeat;
-      border-radius:8px;
-      margin-bottom:12px;
-    }
-    .btn-lg{
-      padding:12px 18px;
+    .btn {
+      background:transparent;
+      border:2px solid var(--accent);
+      color:var(--text);
+      padding:10px 16px;
       border-radius:10px;
       font-weight:800;
       cursor:pointer;
-      border:0;
+      min-width:150px;
+      transition: transform .12s ease, background .12s ease, color .12s ease;
     }
-    .btn-green{ background:#16a34a; color:white; }
-    .btn-green:hover{ filter:brightness(.93); }
-    .btn-red{ background:#dc2626; color:white; }
+    .btn:hover{ transform:translateY(-4px); background:var(--accent); color:var(--panel); }
+    .btn.ghost { border-color: rgba(255,255,255,0.10); color:var(--muted); min-width:110px; }
 
-    /* Ending screen text */
-    #ending-screen .ending-card{ max-width:720px; }
-
-    /* Responsive tweaks */
-    @media (max-width:720px){
-      #game-wrapper{ height:100vh; max-width:100%; border-radius:0; }
-      .start-image{ height:160px; }
-      #scene-image{ padding:8px; }
-      #dialogue-box{ padding:12px; }
+    /* overlays (start/pause/ending) */
+    .overlay {
+      position:absolute;
+      inset:0;
+      z-index:40;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.85));
+      padding:20px;
+      box-sizing:border-box;
     }
+    .card {
+      width:100%;
+      max-width:760px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.35));
+      padding:18px;
+      border-radius:12px;
+      text-align:center;
+      box-shadow:0 8px 40px rgba(0,0,0,0.6);
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .overlay.hidden { display:none; }
+
+    /* responsive */
+    @media (max-width:900px){
+      #game-frame { max-width:920px; height:86vh; min-height:520px; }
+      .btn { min-width:120px; padding:10px 12px; }
+    }
+    @media (max-width:520px){
+      #game-frame { height:92vh; min-height:620px; }
+      #dialogue{ padding:14px; }
+      #text{ font-size:1rem; }
+      .btn{ width:100%; min-width:0; }
+      #controls{ flex-direction:column; align-items:stretch; }
+      #scene{ padding:10px; }
+    }
+
   </style>
 </head>
 <body>
+  <div class="wrap">
+    <div id="game-frame" role="application" aria-label="Visual novel game frame">
 
-  <div id="game-wrapper">
-    <!-- Scene & Menu Button -->
-    <div id="scene-image" style="background-image: url('https://placehold.co/900x420/a8795d/ffffff?text=Calamba,+1887+-+The+Riverbank');">
-      <button id="menu-button">Menu</button>
-    </div>
-
-    <!-- Dialogue -->
-    <div id="dialogue-box">
-      <div id="speaker-name">Narrator</div>
-      <div id="text-content"></div>
-
-      <div id="choices-container">
-        <!-- Next button shown when there are no choices -->
-        <button id="next-button" class="choice-btn">Sige (Continue)</button>
+      <!-- Scene (background) -->
+      <div id="scene" style="background-image: url('https://placehold.co/1200x700/8D6E63/F5F5F5?text=Calamba+Riverbank');">
+        <button id="menu-button" aria-haspopup="true" aria-controls="pause-menu">Menu</button>
       </div>
-    </div>
 
-    <!-- START MENU (overlay) -->
-    <div id="start-menu" class="overlay">
-      <div class="start-card">
-        <h1 style="font-size:2rem;color:var(--accent-color);margin:0 0 8px;">The First Leaf</h1>
-        <h2 style="margin:0 0 12px;color:#ddd;font-weight:600;">Decisions That Define Us</h2>
-        <div id="start-menu-image" class="start-image" style="background-image:url('https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/isagani.png?raw=true');"></div>
-        <div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
-          <button id="start-game-button" class="btn-lg btn-green">BEGIN JOURNEY</button>
-          <button id="open-credits" class="btn-lg" style="background:#333;color:#fff;">Credits</button>
+      <!-- Dialogue -->
+      <div id="dialogue" aria-live="polite">
+        <div id="speaker">Narrator</div>
+        <div id="text">
+          <!-- dynamic content -->
         </div>
-        <p style="color:#aaa;margin-top:10px;font-size:.92rem;">Based on the historical weight of Calamba, 1887</p>
-      </div>
-    </div>
 
-    <!-- PAUSE MENU (overlay) -->
-    <div id="pause-menu" class="overlay hidden">
-      <div style="text-align:center;">
-        <h1 style="color:var(--accent-color);font-size:2rem;margin-bottom:8px;">Paused</h1>
-        <div style="display:flex;gap:12px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
-          <button id="resume-button" class="btn-lg btn-green">Resume</button>
-          <button id="restart-button" class="btn-lg btn-red">Restart Game</button>
+        <div id="controls" aria-hidden="false">
+          <button id="next" class="btn">Sige (Continue)</button>
         </div>
       </div>
-    </div>
 
-    <!-- ENDING SCREEN (overlay) -->
-    <div id="ending-screen" class="overlay hidden">
-      <div class="start-card ending-card">
-        <h1 id="ending-title" style="font-size:1.6rem;color:var(--accent-color);margin-bottom:6px;"></h1>
-        <p id="ending-text" style="color:#ddd;margin-bottom:12px;"></p>
-        <p id="ending-score" style="color:#bbb;margin-bottom:8px;font-family:monospace;"></p>
-        <div style="display:flex;gap:12px;justify-content:center;">
-          <button id="end-restart-button" class="btn-lg btn-green">Play Again</button>
+      <!-- Overlay: Start -->
+      <div id="start-overlay" class="overlay">
+        <div class="card">
+          <h1 style="font-size:2rem;color:var(--accent);margin:0 0 8px;">The First Leaf</h1>
+          <p style="margin:0 0 12px;color:var(--muted);font-weight:600;">Decisions That Define Us — Calamba, 1887</p>
+
+          <div style="height:220px;background-image:url('https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/isagani.png'); background-size:contain; background-repeat:no-repeat; background-position:center; margin-bottom:14px;"></div>
+
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <button id="start-btn" class="btn" style="min-width:180px;background:var(--accent);color:var(--panel);">Begin Journey</button>
+            <button id="demo-btn" class="btn ghost">Demo Scene</button>
+          </div>
+          <p style="color:var(--muted);margin-top:12px;font-size:.92rem;">Tip: use Pause menu to restart or resume at any time.</p>
         </div>
       </div>
-    </div>
 
+      <!-- Overlay: Pause -->
+      <div id="pause-menu" class="overlay hidden" aria-hidden="true">
+        <div class="card">
+          <h2 style="margin:0 0 10px;color:var(--accent);">Paused</h2>
+          <div style="display:flex;gap:12px;justify-content:center;">
+            <button id="resume-btn" class="btn">Resume</button>
+            <button id="restart-btn" class="btn ghost">Restart</button>
+          </div>
+          <p style="color:var(--muted);margin-top:10px;">Menu opened from the scene top-right button.</p>
+        </div>
+      </div>
+
+      <!-- Overlay: Ending -->
+      <div id="ending-overlay" class="overlay hidden" aria-hidden="true">
+        <div class="card">
+          <h2 id="ending-title" style="color:var(--accent);margin-bottom:8px;"></h2>
+          <p id="ending-text" style="color:var(--muted);margin-bottom:12px;"></p>
+          <p id="ending-score" style="font-family:monospace;color:#cfcfcf;margin-bottom:14px;"></p>
+          <div style="display:flex;gap:10px;justify-content:center;">
+            <button id="playagain-btn" class="btn">Play Again</button>
+            <button id="home-btn" class="btn ghost">Back to Start</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
-  <!-- Game Script: structured and easy to extract into a separate file -->
   <script type="module">
-    // --- IMAGE LINKS (change to raw urls if needed) ---
+    /***********************
+     * GAME ENGINE (module)
+     * - Easy to extract to game.js: copy everything inside this script block.
+     ***********************/
+
+    // --- Image resources (use raw URLs or local files) ---
     const IMAGE_URLS = {
       ISAGANI: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/isagani.png',
       GUARD: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/guard.png',
       FARMER: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/farmer.png',
       MENTOR: 'https://raw.githubusercontent.com/charlesnavalta/CSEG1---Laboratory-Exam/main/images/mentor.png',
-      RIVERBANK: 'https://placehold.co/900x420/8D6E63/F5F5F5?text=Calamba+Riverbank',
-      OLD_HOUSE: 'https://placehold.co/900x420/5D4037/F5F5F5?text=The+Old+Ancestral+House',
-      STUDY: 'https://placehold.co/900x420/2E3D49/F5F5F5?text=Manila+Study+Room',
-      STREET: 'https://placehold.co/900x420/757575/F5F5F5?text=A+Dark+Manila+Street',
+      RIVERBANK: 'https://placehold.co/1200x700/8D6E63/F5F5F5?text=Calamba+Riverbank',
+      OLD_HOUSE: 'https://placehold.co/1200x700/5D4037/F5F5F5?text=The+Old+Ancestral+House',
+      STUDY: 'https://placehold.co/1200x700/2E3D49/F5F5F5?text=Manila+Study+Room',
+      STREET: 'https://placehold.co/1200x700/757575/F5F5F5?text=A+Dark+Manila+Street'
     };
 
-    // --- STATE ---
-    const gameState = {
-      currentScene: 'INTRO',
-      legacy: 0,
-      isPaused: false,
-    };
-
-    // --- SCENES (same structure as before) ---
+    // --- Scenes (clean, same structure) ---
     const SCENES = {
       'INTRO': {
         image: IMAGE_URLS.RIVERBANK,
@@ -299,7 +310,6 @@
         text_english: "Sir, *I beg you*. We have nothing left. We have already given everything.",
         next_scene: 'DECISION_1_INITIAL'
       },
-
       'DECISION_1_INITIAL': {
         image: IMAGE_URLS.RIVERBANK,
         speaker: "Narrator",
@@ -310,13 +320,10 @@
           { text: "Bold Defender: Step forward and demand the Guard leave him alone.", next: 'PATH_ACTION', legacy_change: 2, feedback: "You prioritize direct action and justice. Legacy: +2" }
         ]
       },
-
       'PATH_REFORM': { image: IMAGE_URLS.ISAGANI, speaker: "Isagani", text_filipino: "Ang panulat ay mas matalas kaysa sa espada. Isusulat ko ito sa aking talaarawan. Balang araw, magagamit ito.", text_english: "The pen is mightier than the sword. I will write this in my journal. Someday, it will be useful.", next_scene: 'TIME_PASSES_A' },
       'TIME_PASSES_A': { image: IMAGE_URLS.STUDY, speaker: "Narrator", text_filipino: "Lumipas ang pitong taon. Naging isang matalinong estudyante ka, na nakatuon sa pag-aaral ng mga batas.", text_english: "Seven years pass. You become a disciplined student, focused on mastering the law.", next_scene: 'MAJOR_DECISION_1_A' },
-
       'PATH_ACTION': { image: IMAGE_URLS.GUARD, speaker: "Isagani", text_filipino: "Bitiwan mo siya! Wala kang karapatang ganyan! *Akin ang atensyon mo*.", text_english: "Let him go! You have no right to act this way! *My attention is yours*.", next_scene: 'TIME_PASSES_B' },
       'TIME_PASSES_B': { image: IMAGE_URLS.STREET, speaker: "Narrator", text_filipino: "Pinarusahan ka. Ngunit ang iyong tapang ay kumalat. Lumipas ang pitong taon, at ngayon ay ikaw ang isang mapusok na tinig.", text_english: "You were punished. But your bravery spread. Seven years pass, and you are now a passionate voice.", next_scene: 'MAJOR_DECISION_1_A' },
-
       'MAJOR_DECISION_1_A': {
         image: IMAGE_URLS.MENTOR,
         speaker: "Ginoong Emilio (Mentor)",
@@ -327,12 +334,9 @@
           { text: "Option B: Accept the Forbidden Book (Truth and Danger)", next: 'PATH_RADICAL_TRUTH', legacy_change: 2, feedback: "Legacy increases (Action). You gain radical thought, but risk exposure." }
         ]
       },
-
       'PATH_LEGAL_POWER': { image: IMAGE_URLS.STUDY, speaker: "Narrator", text_filipino: "Pumasok ka sa Batasan. Ngayon, may hawak kang legal na Petition para sa pagbabago ng lupa.", text_english: "You entered the legal profession. You now hold a powerful legal Petition for land reform.", next_scene: 'MAJOR_DECISION_2_INTRO' },
       'PATH_RADICAL_TRUTH': { image: IMAGE_URLS.OLD_HOUSE, speaker: "Narrator", text_filipino: "Ikaw ay naging isang manunulat. May hawak ka na ngayong matibay na ebidensya ng malawakang korupsyon ng opisyal.", text_english: "You became a writer. You now hold solid evidence of widespread official corruption.", next_scene: 'MAJOR_DECISION_2_INTRO' },
-
-      'MAJOR_DECISION_2_INTRO': { image: IMAGE_URLS.RIVERBANK, speaker: "Kaibigan (Friend)", text_filipino: "Isagani, *mag-ingat ka*. Kung ilalathala mo iyan, parurusahan tayo. Pakiusap, sunugin mo na lang iyan.", text_english: "Isagani, *be careful*. If you publish that, they will punish us all. Please, just burn it.", visual_cue: 'tension-filter', next_scene: 'MAJOR_DECISION_2' },
-
+      'MAJOR_DECISION_2_INTRO': { image: IMAGE_URLS.RIVERBANK, speaker: "Kaibigan (Friend)", text_filipino: "Isagani, *mag-ingat ka*. Kung ilalathala mo iyan, parurusahan tayo. Pakiusap, sunugin mo na lang iyan.", text_english: "Isagani, *be careful*. If you publish that, they will punish us all. Please, just burn it.", visual_cue: 'tension', next_scene: 'MAJOR_DECISION_2' },
       'MAJOR_DECISION_2': {
         image: IMAGE_URLS.RIVERBANK,
         speaker: "Narrator",
@@ -343,141 +347,201 @@
           { text: "Option B: Protect the Community (Silence and Burn the Document)", next: 'CONSEQUENCE_OF_SILENCE', legacy_change: -2, feedback: "You chose immediate safety. Legacy: -2" }
         ]
       },
-
-      'CONSEQUENCE_OF_TRUTH': { image: IMAGE_URLS.STREET, speaker: "Narrator", visual_cue: 'tension-filter', text_filipino: "Ang paglalathala ay nagdulot ng gulo at panganib. Ikaw ay naging *persona non grata*. Ngunit ang iyong gawa ay nabuhay.", text_english: "The publication caused chaos and danger. You became *persona non grata*. But your work lived on.", next_scene: 'ENDING_B_MARTYR' },
-
+      'CONSEQUENCE_OF_TRUTH': { image: IMAGE_URLS.STREET, speaker: "Narrator", visual_cue: 'tension', text_filipino: "Ang paglalathala ay nagdulot ng gulo at panganib. Ikaw ay naging *persona non grata*. Ngunit ang iyong gawa ay nabuhay.", text_english: "The publication caused chaos and danger. You became *persona non grata*. But your work lived on.", next_scene: 'ENDING_B_MARTYR' },
       'CONSEQUENCE_OF_SILENCE': { image: IMAGE_URLS.STUDY, speaker: "Narrator", visual_cue: 'none', text_filipino: "Ang Calamba ay ligtas. Ikaw ay nabuhay nang matagal, ginamit ang batas para sa maliliit na pagbabago. Ngunit sa bawat umaga, nadarama mo ang pagsisisi.", text_english: "Calamba remained safe. You lived a long life, using the law for small, incremental changes. But with every sunrise, you felt regret.", next_scene: 'ENDING_A_REFORMER' },
-
-      'ENDING_A_REFORMER': { ending:true, title:"ENDING A: THE QUIET REFORMER", text:"You chose safety over symbolic change. You created a life of comfort and stability. Your work brought small improvements to your town, but the larger system remained intact. You defined your life not by the thunder of revolution, but by the quiet power of prudence. History remembers your diligence, but not your name." },
-
-      'ENDING_B_MARTYR': { ending:true, title:"ENDING B: THE TRAGIC MARTYR", text:"Your final choice ignited the spark of change. Though you faced exile and hardship, your published words and actions became the rallying cry for a future generation. You sacrificed your comfort and security for the truth. You defined your life by your courage. History remembers you as the man who cast the first, defining leaf of rebellion." }
+      'ENDING_A_REFORMER': { ending: true, title: "ENDING A: THE QUIET REFORMER", text: "You chose safety over symbolic change. You created a life of comfort and stability. Your work brought small improvements to your town, but the larger system remained intact. You defined your life not by the thunder of revolution, but by the quiet power of prudence. History remembers your diligence, but not your name." },
+      'ENDING_B_MARTYR': { ending: true, title: "ENDING B: THE TRAGIC MARTYR", text: "Your final choice ignited the spark of change. Though you faced exile and hardship, your published words and actions became the rallying cry for a future generation. You sacrificed your comfort and security for the truth. You defined your life by your courage. History remembers you as the man who cast the first, defining leaf of rebellion." }
     };
 
-    // --- DOM references ---
-    const sceneImage = document.getElementById('scene-image');
-    const speakerName = document.getElementById('speaker-name');
-    const textContent = document.getElementById('text-content');
-    const choicesContainer = document.getElementById('choices-container');
-    const nextButton = document.getElementById('next-button');
+    // --- DOM refs ---
+    const sceneEl = document.getElementById('scene');
+    const speakerEl = document.getElementById('speaker');
+    const textEl = document.getElementById('text');
+    const controlsEl = document.getElementById('controls');
 
-    const startMenu = document.getElementById('start-menu');
+    const startOverlay = document.getElementById('start-overlay');
     const pauseMenu = document.getElementById('pause-menu');
-    const endingScreen = document.getElementById('ending-screen');
+    const endingOverlay = document.getElementById('ending-overlay');
 
-    // overlay buttons
-    document.getElementById('menu-button').addEventListener('click', togglePause);
-    document.getElementById('resume-button').addEventListener('click', togglePause);
-    document.getElementById('restart-button').addEventListener('click', restartGame);
-    document.getElementById('start-game-button').addEventListener('click', () => {
-      startMenu.classList.add('hidden');
-      loadScene('INTRO');
-    });
-    document.getElementById('end-restart-button').addEventListener('click', () => {
-      endingScreen.classList.add('hidden');
-      restartGame();
-    });
+    const startBtn = document.getElementById('start-btn');
+    const demoBtn = document.getElementById('demo-btn');
+    const menuBtn = document.getElementById('menu-button');
+    const resumeBtn = document.getElementById('resume-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const nextBtn = document.getElementById('next');
+    const playAgainBtn = document.getElementById('playagain-btn');
+    const homeBtn = document.getElementById('home-btn');
+
+    // State
+    const state = {
+      legacy: 0,
+      current: 'INTRO',
+      isPaused: false
+    };
 
     // --- Core functions ---
-    function loadScene(sceneId){
-      const scene = SCENES[sceneId];
-      if(!scene){ console.warn('Missing scene', sceneId); return; }
+    function setSceneBackground(url){
+      // Preload image for smoother transition
+      const img = new Image();
+      img.onload = () => {
+        sceneEl.style.backgroundImage = `url('${url}')`;
+      };
+      img.src = url;
+    }
 
-      // update current
-      gameState.currentScene = sceneId;
+    function renderScene(id){
+      const scene = SCENES[id];
+      if(!scene){
+        console.warn('Scene not found:', id);
+        return;
+      }
+      state.current = id;
 
-      // visuals
-      sceneImage.style.backgroundImage = `url('${scene.image || IMAGE_URLS.RIVERBANK}')`;
-      // visual cue
-      if(scene.visual_cue === 'tension-filter') sceneImage.classList.add('tension-filter');
-      else sceneImage.classList.remove('tension-filter');
+      // background + visual cue
+      setSceneBackground(scene.image || IMAGE_URLS.RIVERBANK);
+      sceneEl.classList.toggle('tension-filter', scene.visual_cue === 'tension');
 
-      // text
-      speakerName.textContent = scene.speaker || 'Narrator';
-      textContent.innerHTML = `${scene.text_filipino || ''}<span class="translated-text">(${scene.text_english || ''})</span>`;
+      // speaker + text
+      speakerEl.textContent = scene.speaker || 'Narrator';
+      // ensure wrapped text (no vertical stacking). Use innerHTML so we can add translation block.
+      textEl.innerHTML = '';
+      const p = document.createElement('div');
+      p.textContent = scene.text_filipino || '';
+      textEl.appendChild(p);
+      const tr = document.createElement('div');
+      tr.className = 'translated';
+      tr.textContent = `(${scene.text_english || ''})`;
+      textEl.appendChild(tr);
 
-      // choices / next
-      choicesContainer.innerHTML = ''; // clear
+      // choices / next button
+      populateControls(scene);
+    }
+
+    function populateControls(scene){
+      controlsEl.innerHTML = '';
+      // If scene is ending, show ending overlay
       if(scene.ending){
-        showEnding(scene);
+        // small delay so the final scene shows then overlay
+        setTimeout(() => showEnding(scene), 450);
         return;
       }
 
       if(scene.choices && Array.isArray(scene.choices)){
-        scene.choices.forEach((choice, idx) => {
-          const btn = document.createElement('button');
-          btn.className = 'choice-btn';
-          btn.textContent = choice.text;
-          btn.addEventListener('click', () => handleChoice(choice));
-          choicesContainer.appendChild(btn);
+        // make a button per choice
+        scene.choices.forEach((c, i) => {
+          const b = document.createElement('button');
+          b.className = 'btn';
+          b.textContent = c.text;
+          b.onclick = () => {
+            applyChoice(c);
+          };
+          controlsEl.appendChild(b);
         });
       } else {
-        // next button
-        nextButton.style.display = 'block';
-        nextButton.onclick = () => {
-          if(scene.next_scene) loadScene(scene.next_scene);
+        // show Next button
+        const b = document.createElement('button');
+        b.className = 'btn';
+        b.textContent = 'Sige (Continue)';
+        b.onclick = () => {
+          if(scene.next_scene) {
+            renderScene(scene.next_scene);
+          }
         };
-        choicesContainer.appendChild(nextButton);
+        controlsEl.appendChild(b);
       }
     }
 
-    function handleChoice(choice){
-      // adjust legacy (guard against undefined)
-      const delta = Number(choice.legacy_change || 0);
-      gameState.legacy += delta;
-
-      // show feedback briefly, then move on
+    function applyChoice(choice){
+      state.legacy += Number(choice.legacy_change || 0);
+      // show feedback briefly in the text box
       const fb = document.createElement('div');
       fb.style.marginTop = '8px';
-      fb.style.fontSize = '.9rem';
       fb.style.color = '#f6e05e';
       fb.style.fontWeight = '700';
       fb.textContent = choice.feedback || '';
-      textContent.appendChild(fb);
-
-      // disable input while waiting
-      choicesContainer.querySelectorAll('button').forEach(b => b.disabled = true);
+      textEl.appendChild(fb);
+      // disable controls while feedback shows
+      Array.from(controlsEl.querySelectorAll('button')).forEach(btn => btn.disabled = true);
 
       setTimeout(() => {
-        if(choice.next) loadScene(choice.next);
-      }, 900);
+        if(choice.next) renderScene(choice.next);
+      }, 850);
     }
 
     function showEnding(scene){
-      // reveal ending overlay
       document.getElementById('ending-title').textContent = scene.title || '';
       document.getElementById('ending-text').textContent = scene.text || '';
-      document.getElementById('ending-score').textContent = `Final Legacy Score: ${gameState.legacy}`;
-      endingScreen.classList.remove('hidden');
+      document.getElementById('ending-score').textContent = `Final Legacy Score: ${state.legacy}`;
+      endingOverlay.classList.remove('hidden');
+      endingOverlay.setAttribute('aria-hidden', 'false');
     }
 
-    function restartGame(){
-      gameState.legacy = 0;
-      gameState.currentScene = 'INTRO';
-      gameState.isPaused = false;
+    function restartGame(toStart = true){
+      state.legacy = 0;
+      state.current = 'INTRO';
       pauseMenu.classList.add('hidden');
-      endingScreen.classList.add('hidden');
-      startMenu.classList.remove('hidden');
-      // reset scene image state
-      sceneImage.classList.remove('tension-filter');
-      sceneImage.style.backgroundImage = `url('${IMAGE_URLS.RIVERBANK}')`;
-      speakerName.textContent = 'Narrator';
-      textContent.innerHTML = '';
-      choicesContainer.innerHTML = '';
-      choicesContainer.appendChild(nextButton);
+      pauseMenu.setAttribute('aria-hidden', 'true');
+      endingOverlay.classList.add('hidden');
+      endingOverlay.setAttribute('aria-hidden', 'true');
+      if(toStart){
+        startOverlay.classList.remove('hidden');
+      }
+      renderScene('INTRO'); // preload scene content so overlay shows meaningful preview
     }
 
     function togglePause(){
-      gameState.isPaused = !gameState.isPaused;
-      if(gameState.isPaused){
+      state.isPaused = !state.isPaused;
+      if(state.isPaused){
         pauseMenu.classList.remove('hidden');
+        pauseMenu.setAttribute('aria-hidden', 'false');
       } else {
         pauseMenu.classList.add('hidden');
+        pauseMenu.setAttribute('aria-hidden', 'true');
       }
     }
 
-    // --- Initialization: show intro text so Start Menu isn't an empty overlay ---
-    // Do not hide the start menu by hiding the whole container (that's the fix).
-    loadScene('INTRO'); // scene loaded but start menu remains on top until user presses Begin
+    // --- Event listeners ---
+    startBtn.addEventListener('click', () => {
+      startOverlay.classList.add('hidden');
+      renderScene('INTRO');
+    });
+    demoBtn.addEventListener('click', () => {
+      startOverlay.classList.add('hidden');
+      renderScene('DECISION_1_INITIAL'); // jump to a choice to demo immediately
+    });
+    menuBtn.addEventListener('click', togglePause);
+    resumeBtn.addEventListener('click', togglePause);
+    restartBtn.addEventListener('click', () => {
+      restartGame(true);
+    });
+    playAgainBtn.addEventListener('click', () => {
+      endingOverlay.classList.add('hidden');
+      restartGame(false);
+      renderScene('INTRO');
+    });
+    homeBtn.addEventListener('click', () => {
+      endingOverlay.classList.add('hidden');
+      restartGame(true);
+    });
+
+    // keyboard: space/enter next if no choices
+    window.addEventListener('keydown', (e) => {
+      if(e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter'){
+        // if start overlay visible: trigger start
+        if(!startOverlay.classList.contains('hidden')) { startBtn.click(); return; }
+        // if pause or ending overlay active, ignore
+        if(!pauseMenu.classList.contains('hidden') || !endingOverlay.classList.contains('hidden')) return;
+        const scene = SCENES[state.current];
+        if(!scene) return;
+        if(scene.choices && scene.choices.length > 0) return; // do not advance on space if choices present
+        // else trigger default next
+        const nextBtnInControls = controlsEl.querySelector('button');
+        if(nextBtnInControls) nextBtnInControls.click();
+      }
+    });
+
+    // --- Initialization: show intro preview and keep start overlay visible ---
+    restartGame(true);
   </script>
 </body>
 </html>
